@@ -1,0 +1,32 @@
+version: "3"
+
+services:
+  web:
+    image: your-docker-registry/task-management-app:latest
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=production
+      - DATABASE_URL=postgresql://taskuser:taskpass@db/taskdb
+  db:
+    image: postgres:13
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+    environment:
+      - POSTGRES_DB=taskdb
+      - POSTGRES_USER=taskuser
+      - POSTGRES_PASSWORD=taskpass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
